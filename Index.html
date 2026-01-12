@@ -5,9 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crypto Binance Bot Signals</title>
 <style>
-body { background:#0b0b0b; color:#fff; font-family:Arial, sans-serif; text-align:center; padding:20px; } 
-.signal { font-size:34px; font-weight:bold; }
-.buy { color:#00ff9c; } .sell { color:#ff4d4d; } .wait { color:#aaa; }
+body {
+  background:#0b0b0b;
+  color:#fff;
+  font-family:Arial, sans-serif;
+  text-align:center;
+  padding:20px;
+} 
+.signal {
+  font-size:34px;
+  font-weight:bold;
+}
+.buy { color:#00ff9c; } 
+.sell { color:#ff4d4d; } 
+.wait { color:#aaa; }
 #timer { font-size:18px; color:#ffd966; margin-bottom:15px; }
 .small { font-size:13px; color:#888; }
 .logo { width:150px; margin:10px 0; }
@@ -16,7 +27,7 @@ body { background:#0b0b0b; color:#fff; font-family:Arial, sans-serif; text-align
 <body>
 
 <h2>Crypto Binance Bot by <b>ASAD_ALI</b></h2>
-<img src="../binance-logo.png" alt="Binance Logo" class="logo">
+<img src="binance-logo.png" alt="Binance Logo" class="logo" />
 
 <div id="timer">Next candle close in: --:--</div>
 
@@ -77,7 +88,8 @@ function updateSignals(){
 
 function countdown(){
   let now=new Date();
-  let m=now.getMinutes()%10, s=now.getSeconds();
+  let m=now.getMinutes()%10;
+  let s=now.getSeconds();
   let left=(9-m)*60+(60-s);
   let mm=Math.floor(left/60).toString().padStart(2,'0');
   let ss=(left%60).toString().padStart(2,'0');
@@ -85,8 +97,10 @@ function countdown(){
 }
 
 updateSignals();
-setInterval(updateSignals, 600000); // 10 min
+setInterval(updateSignals,600000);
 setInterval(countdown,1000);
+
 </script>
+
 </body>
 </html>
