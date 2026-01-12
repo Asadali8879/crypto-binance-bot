@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Binance Bot Signals</title>
+<style>
+  :root{
+    --bg1:#0b0b0b; --bg2:#1a1a1a;
+    --gold:#ffd700; --muted:#888; --info:#00d1ff;
+    --buy:#00ff9c; --sell:#ff4d4d; --wait:#aaa;
+  }
+  html,body{height:100%;margin:0}
+  body {
+    min-height:100%;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color:#fff;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    padding: 20px;
+    box-sizing:border-box;
+  }
+  .container{max-width:720px;margin:0 auto}
+  .logo{width:96px;height:96px;object-fit:contain;display:block;margin:14px auto;}
+  h1{font-size:24px;margin:0 0 8px;color:var(--gold);}
+  #timer{font-size:16px;color:#ffd966;margin:6px 0 16px;}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
+  .box{background: rgba(255,255,255,0.03);border-radius:8px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+  .box h2{font-size:16px;margin:4px 0 8px;}
+  .signal{font-size:28px;font-weight:700;margin:6px 0;display:inline-block;padding:6px 12px;border-radius:6px;min-width:84px;}
+  .buy{color:#042;background:rgba(0,255,156,0.06);}
+  .sell{color:#400;background:rgba(255,77,77,0.06);}
+  .wait{color:var(--wait);background:rgba(255,255,255,0.02);}
+  .meta{font-size:13px;color:var(--muted);margin-top:6px;}
+  .branding{font-weight:700;font-size:14px;color:var(--info);margin-top:18px;}
+  .small{font-size:12px;color:#9a9a9a;margin-top:8px;}
+  @media(max-width:520px){.cards{grid-template-columns:1fr;}h1{font-size:20px;}.signal{font-size:22px;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <img src="binance-logo.png" alt="Binance logo" class="logo"/>
+  <h1>Crypto Binance Bot Signals</h1>
+  <div id="timer" aria-live="polite">Next candle close in: --:--</div>
+  <div class="cards" role="list">
+    <div class="box" role="listitem" aria-labelledby="btc-label">
+      <h2 id="btc-label">BTCUSDT</h2>
+      <div id="btc" class="signal wait" aria-live="polite" aria-atomic="true">WAIT</div>
+      <div id="btc-meta" class="meta">Price: -- | RSI: --</div>
+    </div>
+    <div class="box" role="listitem" aria-labelledby="eth-label">
+      <h2 id="eth-label">ETHUSDT</h2>
+      <div id="eth" class="signal wait" aria-live="polite" aria-atomic="true">WAIT</div>
+      <div id="eth-meta" class="meta">Price: -- | RSI: --</div>
+    </div>
+  </div>
+  <div class="branding">Signals by ASAD_ALI</div>
+  <div class="small" id="info" aria-live="polite"></div>
+</div>
+
+<script>
+const SERVER_URL = 'https://YOUR_SERVER_URL_HERE'; // Replace with your deployed server URL
+const ASSETS = ['BTC','ETH'];
+
+function updateCountdown(nextCandleTime){
+  const now = Date.now();
+  let secondsLeft = Math.max(0, Math.round((nextCandleTime - now)/1000));
+  const mm = String(Math.floor(secondsLeft/60)).padStart(2,'0');
+  const ss = String(secondsLeft%60).padStart(2,'0');
+  document.getElementById('timer').innerText = `Next candle close in: ${mm}:${ss}`;
+}
+
+async function fetchSignals(){
+  try{
+    const res = await fetch(`${SERVER_URL}/signals`);
+    const data = await res.json();
+    const nextCandle = new Date(data.nextCandle).getTime();
+    updateCountdown(nextCandle);
+
+    for(const asset of ASSETS){
+      const a = data[asset];
+      if(!a) continue;
+      const el = document.getElementById(asset.toLowerCase());
+      const meta = document.getElementById(asset.toLowerCase()+'-meta');
+      el.classList.remove('buy','sell','wait');
+      el.classList.add(a.signal==='BUY'?'buy':a.signal==='SELL'?'sell':'wait');
+      el.innerText = a.signal;
+      meta.innerText = `Price: ${Number(a.price).toFixed(2)} | RSI: ${a.rsi} | O:${Number(a.open).toFixed(2)} C:${Number(a.close).toFixed(2)}`;
+    }
+
+    document.getElementById('info').innerText = `Updated: ${new Date().toLocaleString()}`;
+    return nextCandle;
+  }catch(e){ console.error(e); return Date.now()+600000; }
+}
+
+async function loop(){
+  let next = await fetchSignals();
+  setInterval(async ()=>{
+    next = await fetchSignals();
+  }, 10000); // every 10s fetch new signals (adjust if needed)
+}
+
+loop();
+setInterval(()=>{
+  const timerEl = document.getElementById('timer');
+  const txt = timerEl.innerText;
+  if(txt.includes('--')) return;
+  const parts = txt.split(':');
+  let mm = parseInt(parts[0].split(' ').pop());
+  let ss = parseInt(parts[1]);
+  if(ss>0){ss--;}else{ss=59; mm--;}
+  timerEl.innerText = `Next candle close in: ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+},1000);
+</script>
+</body>
+</html>
